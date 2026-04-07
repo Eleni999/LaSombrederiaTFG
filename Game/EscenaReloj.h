@@ -15,6 +15,7 @@ class EscenaReloj {
   if (rtc.lostPower()) {
     Serial.println("RTC perdió energía, ajustando hora inicial");
     // AJUSTA AQUÍ a la hora real actual: AAAA, MM, DD, HH, MM, SS
+    
     rtc.adjust(DateTime(2026, 3, 23, 18, 31, 0));
   }
 
@@ -34,7 +35,7 @@ class EscenaReloj {
     
   char buf[9]; 
   sprintf(buf, "%02d:%02d:%02d", hour(), minute(), second());
-
+  u8g2.setFont(u8g2_font_timR18_tr);
   // Mostrar hora en OLED
   u8g2.drawStr(22, 41, buf);
   }
