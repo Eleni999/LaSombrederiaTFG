@@ -53,6 +53,7 @@ if (estadoRReloj ){
   reloj.draw(u8g2);
 }else{
   dibujarIconos(u8g2,seleccion); 
+  dibujarConejo(u8g2);
 }
 
 u8g2.sendBuffer(); 
