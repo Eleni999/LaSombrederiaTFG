@@ -62,69 +62,129 @@ void dibujarIconos(U8G2 &u8g2, int seleccion) {
 
 void dibujoIDE(U8G2 &u8g2)
 {
-     // Cabeza
-    u8g2.drawEllipse(66, 37, 9, 9);
-    
-    // OrejaI
-    u8g2.drawXBMP(43, 9, 45, 45, image_OrejaI_bits);
+      static float tiempo = 0;
+    tiempo += 0.3;
 
-    // OrejaD
-    u8g2.drawXBMP(45, 9, 45, 45, image_OrejaD_bits);
-
-     // cuerpo
-    u8g2.drawXBMP(45, 17, 45, 45, image_cuerpo_bits);
-
-    // brazos
-    u8g2.drawXBMP(45, 16, 45, 45, image_brazos_bits);
-
-    // piernaD
-    u8g2.drawLine(68, 59, 68, 63);
+    // movimiento vertical suave
+    float offsetY = sin(tiempo) * 2;
    
-    // piernaI
-    u8g2.drawLine(64, 59, 64, 64);
+    float cx = 66;
+    float cy = 37;
 
-    // ojoD
-    u8g2.drawLine(70, 35, 70, 38);
+    // cabeza
+    u8g2.drawEllipse(66, 37 + offsetY, 9, 9);
 
-    // OjoI
-    u8g2.drawLine(62, 35, 62, 38);
-    
-    // ojosCerrados
-    u8g2.drawXBMP(62, 37, 9, 1, image_ojosCerrados_bits);
+    // orejas
+    u8g2.drawXBMP(43, 9 + offsetY, 45, 45, image_OrejaI_bits);
+    u8g2.drawXBMP(45, 9 + offsetY, 45, 45, image_OrejaD_bits);
+
+    // cuerpo
+    u8g2.drawXBMP(45, 17 + offsetY, 45, 45, image_cuerpo_bits);
+
+
 
      // bocaIde
-    u8g2.drawXBMP(65, 39, 3, 3, image_bocaIde_bits);
-    
+    u8g2.drawXBMP(65, 37+ offsetY, 3, 3, image_bocaIde_bits);
+
+
+     // brazos
+    u8g2.drawXBMP(45, 16  + offsetY, 45, 45, image_brazos_bits);
+
  
+
+
+     float baseY = 59 + offsetY;
+    u8g2.drawLine(68, baseY, 68, 59);
+    u8g2.drawLine(64, baseY, 64, 59);
+
+  bool parpadeo = false;
+ if( sin ( tiempo *1)> 0.95){
+   parpadeo  = true;
+ }
+ if(parpadeo){
+    // ojosCerrados
+    u8g2.drawXBMP(62, 37 + offsetY, 9, 1 + offsetY, image_ojosCerrados_bits);
+ }
+else{
+
+         // ojo derecho
+  u8g2.drawLine(70, 33 + offsetY, 70, 37 + offsetY);
+  // ojo izquierdo
+   u8g2.drawLine(62, 33 + offsetY, 62, 37 + offsetY); 
+    }
 
 }
 
 void dibujoSucio(U8G2 &u8g2){
-  //dibujoIDE(u8g2);
+ // dibujoIDE(u8g2);
+    const int numParticulas = 2;
+  static int x[numParticulas];
+  static int y[numParticulas];
+  static bool inicio = false;
 
-
-  const int numParticulas = 4;
+  unsigned long tiempo = millis();
   int particulasActuales = 0;
 
+  
+  const int cuerpoX1 = 50;
+  const int cuerpoX2 = 85;
+  const int cuerpoY1 = 25;
+  const int cuerpoY2 = 64;
+
+  if(!inicio){
+    for(int i = 0; i < numParticulas; i++){
+      x[i] = random(60, 72);   // más centrado en boca/cabeza
+      y[i] = random(35, 45);
+    }
+    inicio = true;
+  }
 
   while(particulasActuales < numParticulas){
 
-    int x = random(0, 128);
-    int y = random(0, 64);
+    int i = particulasActuales;
+
+  
+    y[i] -= 1.2;
 
     
-    if (x > 45 && x < 90 && y > 9 && y < 64){
-      continue;
+    if (y[i] > 35) {
+      x[i] += sin((tiempo + i * 200) / 400.0) * 0.3;
+    } else {
+      x[i] += sin((tiempo + i * 100) / 200.0) * 1.5;
     }
 
-    u8g2.drawXBMP(x, y, 11, 12, image_particulasSucio_bits);
+ 
+    bool dentroCuerpo =
+      (x[i] > cuerpoX1 && x[i] < cuerpoX2 &&
+       y[i] > cuerpoY1 && y[i] < cuerpoY2);
+
+    if (dentroCuerpo) {
+
+   
+      if (y[i] > 40) {
+        y[i] = cuerpoY1 - 2; // sale por cuello/cabeza
+      } 
+      else {
+        // empuje lateral suave
+        if (x[i] < 66) x[i] = cuerpoX1 - 2;
+        else x[i] = cuerpoX2 + 2;
+      }
+    }
+
+   
+    if (y[i] < 5){
+      x[i] = random(60, 72);
+      y[i] = random(35, 45);
+    }
+
+    u8g2.drawXBMP(x[i], y[i], 11, 12, image_particulasSucio_bits);
 
     particulasActuales++;
   }
-
 }
 void dibujarBano(U8G2 &u8g2){
 
+  unsigned long tiempo = millis();
      // Cabeza
     u8g2.drawEllipse(66, 37, 9, 9);
     
@@ -142,44 +202,87 @@ void dibujarBano(U8G2 &u8g2){
 
     // IconoBanar_v03e
     u8g2.drawXBMP(59, 40, 17, 17, IconoBanar_bits);
+     
+     int maxBurbojas = 8;
+     for ( int i = 0; i< maxBurbojas;  i++){
 
-    // burbijaBaño
-    u8g2.drawEllipse(55, 44, 2, 2);
+     float offsetTiempo = ( tiempo + i *200) % 3000;
+
+     int y = 50 - (offsetTiempo /3500.0)*70;
+     
+     int separacion = (50 - y) /2 ; 
+
+     
+     int aleatorio = random(-5, 5);
+     int x = 59+ ((i % 3) - 1) *(4 + separacion + aleatorio);
+      if (y < 12) {
+
+        int pop = (tiempo / 50 + i) % 3;  
+
+        if (pop == 0) {
+            u8g2.drawPixel(x, y);
+        } 
+        else if (pop == 1) {
+            u8g2.drawCircle(x, y, 2);
+        } 
+        else {
+            u8g2.drawCircle(x, y, 3);
+        }
+
+    } else {
+      
+        // burbijaBaño
+        u8g2.drawEllipse(x, y, 2, 2);
+    }
+      
+     }
+   
 
 }
 
 void dibujarHambre(U8G2 &u8g2){
 
-   // Cabeza
-    u8g2.drawEllipse(66, 37, 9, 9);
-    
-    // OrejaI
-    u8g2.drawXBMP(43, 9, 45, 45, image_OrejaI_bits);
+      static float tiempo = 0;
+     tiempo += 0.1;
 
-    // OrejaD
-    u8g2.drawXBMP(45, 9, 45, 45, image_OrejaD_bits);
+    // movimiento vertical suave
+    float offsetY = sin(tiempo) * 2;
+    float offsetX = cos(tiempo* 2 ) *2; 
+    float ojosOffsetY = sin(tiempo) * 2 + sin(tiempo* 4 ) *1; ;
 
-     // cuerpo
-    u8g2.drawXBMP(45, 17, 45, 45, image_cuerpo_bits);
+    // cabeza
+    u8g2.drawEllipse(66  , 37 + offsetY, 9, 9);
 
-    // brazos
-    u8g2.drawXBMP(45, 16, 45, 45, image_brazos_bits);
+    // orejas
+    u8g2.drawXBMP(43  , 9 + offsetY, 45, 45, image_OrejaI_bits);
+    u8g2.drawXBMP(45   , 9 + offsetY, 45, 45, image_OrejaD_bits);
 
-    // piernaD
-    u8g2.drawLine(68, 59, 68, 63);
-   
-    // piernaI
-    u8g2.drawLine(64, 59, 64, 64);
-    // bocaIde
-    u8g2.drawXBMP(65, 39, 3, 3, image_bocaIde_bits);
+    // cuerpo
+    u8g2.drawXBMP(45 , 17 + offsetY, 45, 45, image_cuerpo_bits);
+
+
+
+     // bocaIde
+    u8g2.drawXBMP(65 , 37+ offsetY, 3, 3, image_bocaIde_bits);
+
+
+     // brazos
+    u8g2.drawXBMP(45  , 16  + offsetY, 45, 45, image_brazos_bits);
+
+ 
+     float baseY = 59 + offsetY;
+    u8g2.drawLine(68  , baseY, 68, 59);
+    u8g2.drawLine(64  , baseY, 64, 59);
   
   // OjoMareo
-  u8g2.drawXBMP(67, 34, 6, 5, image_OjoMareo_bits);
+  u8g2.drawXBMP(67 + ojosOffsetY , 34 + offsetY, 6, 5, image_OjoMareo_bits);
   // OjoMareo
-  u8g2.drawXBMP(60, 34, 6, 5, image_OjoMareo_bits);
+  u8g2.drawXBMP(60 + ojosOffsetY  , 34 - offsetY, 6, 5, image_OjoMareo_bits);
 
 }
 void dibujarComer(U8G2 &u8g2){
+
+  unsigned long tiempo = millis();
     // Cabeza
     u8g2.drawEllipse(66, 37, 9, 9);
     
@@ -194,35 +297,74 @@ void dibujarComer(U8G2 &u8g2){
 
     // bocaIde
     u8g2.drawXBMP(65, 39, 3, 3, image_bocaIde_bits);
-
+    
 
     // manoI
     u8g2.drawXBMP(58, 47, 5, 7, image_manoI_bits);
     // manoD
     u8g2.drawXBMP(69, 46, 5, 7, image_manoD_bits);
     // zanahoria
-    u8g2.drawXBMP(61, 42, 10, 17, image_zanahoria_bits);
-    // particulasComidaI
-    u8g2.drawXBMP(49, 42, 6, 5, image_particulasComidaI_bits);
-    // particulasComidaID
-    u8g2.drawXBMP(76, 42, 6, 5, image_particulasComidaID_bits);
+    u8g2.drawXBMP(61, 42 , 10, 17, image_zanahoria_bits);
+
+     bool aparecer = (tiempo %600) <300;
+    
+    if (aparecer ){
+     // particulasComidaID
+     u8g2.drawXBMP(76, 42, 6, 5, image_particulasComidaID_bits);
+     // particulasComidaI
+     u8g2.drawXBMP(49, 42, 6, 5, image_particulasComidaI_bits);
+    }
+   
 
 }
 void dibujarSueno(U8G2 &u8g2){
- dibujoIDE(u8g2);
+  // dibujoIDE(u8g2);
+  //Tiempo
+   unsigned  long tiempo = millis();
 
+  float factor = (sin(tiempo / 1000.0)*PI); 
+   
+   //Offsets maximos
+   int offsetZ= factor *0.5;
+   
+  //Offsets maximos
+   int ZOffset = offsetZ *factor;
+   
   // Zdormido
   u8g2.setFont(u8g2_font_4x6_tr);
-  u8g2.drawStr(89, 19, "z");
+    u8g2.drawStr(109 +ZOffset, 19 +ZOffset, "z");
+    u8g2.drawStr(99 +ZOffset, 28 +ZOffset, "z");
+    u8g2.drawStr(92 +ZOffset, 36 +ZOffset, "z");
 
 }
 void dibujarDormir(U8G2 &u8g2){
-    // dormir
+  //Tiempo
+   unsigned  long tiempo = millis();
+
+     // dormir
     u8g2.drawXBMP(48, 19, 36, 29, image_dormir_bits);
-    // Zdormir
-    u8g2.drawXBMP(65, 10, 9, 10, image_Zdormir_bits);
+
+  float factor = (sin(tiempo / 1000.0)*PI); 
+   
+   //Offsets maximos
+   int offsetZ= factor *0.5;
+   
+  //Offsets maximos
+   int ZOffset = offsetZ *factor;
+   
+   // Zdormir
+    u8g2.drawXBMP(65 + ZOffset, 10+ ZOffset , 9 , 10 , image_Zdormir_bits);
 }
 void dibujarTe(U8G2 &u8g2){
+   //Tiempo
+   unsigned  long tiempo = millis();
+   float factor = (sin(tiempo / 1000.0)*PI); 
+   //Offsets maximos
+   int offsetBoca = factor *0.5;
+   int offsetOjo = factor *0.5;
+  //Offsets maximos
+   int bocaOffset = offsetBoca *factor;
+   int ojoOffset = offsetOjo  *factor;
 
     // Cabeza
     u8g2.drawEllipse(66, 29, 9, 9);
@@ -234,13 +376,13 @@ void dibujarTe(U8G2 &u8g2){
     u8g2.drawXBMP(45, 1, 45, 45, image_OrejaD_bits);
 
     // bocaIde
-    u8g2.drawXBMP(65, 28, 3, 3, image_bocaIde_bits);
+    u8g2.drawXBMP(65, 28 + bocaOffset , 3, 3, image_bocaIde_bits);
 
     // ojoD
-    u8g2.drawLine(70, 24, 70, 27);
+    u8g2.drawLine(70, 24 + ojoOffset , 70, 27);
 
     // OjoI
-    u8g2.drawLine(62, 24, 62, 27);
+    u8g2.drawLine(62, 24 + ojoOffset , 62, 27);
 
     
     
@@ -256,37 +398,110 @@ void dibujarTe(U8G2 &u8g2){
 }
 void dibujarFeliz(U8G2 &u8g2){
     
-         // Cabeza
-    u8g2.drawEllipse(66, 37, 9, 9);
+
+  static float tiempo = 0;
+  static float posicionX =0;
+  static float posicionY =0;
+  static float velocidadX = 6; 
+
+
+    tiempo += 2;
+     posicionX += velocidadX ;
+     
+    if (posicionX >= 128 - 75){   
+     posicionX = 128 - 75;
+     velocidadX *= -1; 
+  }
+
+  if (posicionX <= -43){
+    posicionX = -43;
+    velocidadX *= -1; 
+  }
     
-    // OrejaI
-    u8g2.drawXBMP(43, 9, 45, 45, image_OrejaI_bits);
-
-    // OrejaD
-    u8g2.drawXBMP(45, 9, 45, 45, image_OrejaD_bits);
-
-     // cuerpo
-    u8g2.drawXBMP(45, 17, 45, 45, image_cuerpo_bits);
-
-    // brazos
-    u8g2.drawXBMP(45, 16, 45, 45, image_brazos_bits);
-
-    // piernaD
-    u8g2.drawLine(68, 59, 68, 63);
+    float offsetY = sin(tiempo) *-6;
    
-    // piernaI
-    u8g2.drawLine(64, 59, 64, 64);
+    
 
-    // bocaIde
-    u8g2.drawXBMP(65, 39, 3, 3, image_bocaIde_bits);
+    // cabeza
+    u8g2.drawEllipse(posicionX +66, 37 + offsetY, 9, 9);
+
+    // orejas
+    u8g2.drawXBMP(posicionX  + 43, 9 + offsetY, 45, 45, image_OrejaI_bits);
+    u8g2.drawXBMP(posicionX + 45, 9 + offsetY, 45, 45, image_OrejaD_bits);
+
+    // cuerpo
+    u8g2.drawXBMP(posicionX  + 45, 17 + offsetY, 45, 45, image_cuerpo_bits);
+
+
+
+     // bocaIde
+    u8g2.drawXBMP(posicionX + 65, 37+ offsetY, 3, 3, image_bocaIde_bits);
+
+
+     // brazos
+    u8g2.drawXBMP(posicionX + 45, 16  + offsetY, 45, 45, image_brazos_bits);
+
+ 
+
+
+     float baseY = 59 + offsetY;
+    u8g2.drawLine(posicionX  + 68, baseY, posicionX + 68, baseY);
+    u8g2.drawLine(posicionX + 64, baseY, posicionX + 64,baseY);
+
     
 
     // corezonD
-    u8g2.drawXBMP(67, 33, 8, 8, image_corazonI_bits);
+    u8g2.drawXBMP(posicionX + 67, 33+ offsetY, 8, 8 , image_corazonI_bits);
 
-        // corazonI
-    u8g2.drawXBMP(59, 33, 8, 8, image_corazonI_bits);
+     // corazonI
+    u8g2.drawXBMP(posicionX + 59, 33 + offsetY, 8, 8 , image_corazonI_bits);
 
 }
+void dibujarMuerte(U8G2 &u8g2){
+ 
+  static float tiempo = 0;
+    tiempo += 0.08;
+
+    // movimiento vertical suave
+    float offsetY = sin(tiempo) * 2;
+    float tearFactor = sin(tiempo) * 1;
+    
+    float cx = 66;
+    float cy = 37;
+
+    // cabeza
+    u8g2.drawEllipse(66, 37 + offsetY, 9, 9);
+
+    // orejas
+    u8g2.drawXBMP(43, 9 + offsetY, 45, 45, image_OrejaI_bits);
+    u8g2.drawXBMP(45, 9 + offsetY, 45, 45, image_OrejaD_bits);
+
+    // cuerpo
+    u8g2.drawXBMP(45, 17 + offsetY, 45, 45, image_cuerpo_bits);
+
+        // ojosCerrados
+    u8g2.drawXBMP(62, 37 + offsetY, 9, 1, image_ojosCerrados_bits);
+
+     // bocaIde
+    u8g2.drawXBMP(65, 39 + offsetY, 3, 3, image_bocaIde_bits);
+
+
+    // manoD
+    u8g2.drawXBMP(69, 39, 5, 7, image_manoD_bits);
+
+    // manoI
+    u8g2.drawXBMP(60, 39, 5, 7, image_manoI_bits);
+
+
+
+     float baseY = 59 + offsetY;
+    u8g2.drawLine(68, baseY, 68,59);
+    u8g2.drawLine(64, baseY, 64, 59 );
+    
+    float tearXOffset = tearFactor * 2;
+    u8g2.drawXBMP(79 - tearXOffset, 34 + offsetY, 11, 5, image_llantoD_bits);
+    u8g2.drawXBMP(45 + tearXOffset, 34 + offsetY, 11, 5, image_llantoI_bits);
+  }
+#endif
 
 #endif
