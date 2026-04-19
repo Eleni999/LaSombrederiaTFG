@@ -59,7 +59,6 @@ void dibujarIconos(U8G2 &u8g2, int seleccion) {
     u8g2.drawTriangle(   x, y, x + ancho, y, x + ancho/2, y + alto );
 
 }
-
 void dibujoIDE(U8G2 &u8g2)
 {
       static float tiempo = 0;
@@ -117,7 +116,7 @@ else{
 
 void dibujoSucio(U8G2 &u8g2){
  // dibujoIDE(u8g2);
-    const int numParticulas = 2;
+  const int numParticulas = 2;
   static int x[numParticulas];
   static int y[numParticulas];
   static bool inicio = false;
@@ -502,6 +501,22 @@ void dibujarMuerte(U8G2 &u8g2){
     u8g2.drawXBMP(79 - tearXOffset, 34 + offsetY, 11, 5, image_llantoD_bits);
     u8g2.drawXBMP(45 + tearXOffset, 34 + offsetY, 11, 5, image_llantoI_bits);
   }
-#endif
+ 
+ //Frases
+  void frasesAliaci(U8G2 &u8g2){
+  const char*frases[]={
 
+  "¡Dios Mío! ¡Dios Mío! ¡Voy a llegar tarde!",
+  "¿y de qué sirve un libro sin dibujos ni diálogos?",
+  "¡Válganme mis orejas y bigotes, qué tarde se me está haciendo!",
+  "¡Cómo me gustaría poderme encoger como un telescopio!",
+  "¡Eres capaz de acabar con la paciencia de una ostra!",
+  "¡La Duquesa! ¡La Duquesa! ¡Me hará ejecutar tan seguro como que los grillos son grillos!",
+  "¡Oh! Siempre llegarás a alguna parte si caminas lo suficiente.",
+  "Sería lo mismo decir veo lo que como que como lo que veo.",
+  "Sui conocieras al Tiempo tan bien como yo no hablarías de matarlo.",
+  "Siempre es la hora del té",
+  "¡Chitón¡ ¡Chitón¡"
+  };
+}
 #endif
