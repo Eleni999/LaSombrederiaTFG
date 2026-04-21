@@ -3,7 +3,8 @@
 
 #include <U8g2lib.h>
 
-
+int velocidadTexto =2;
+extern unsigned long inicioTe;
 //Arrays con la imformacion de las imegenes de los iconos
 static const unsigned char IconoAjustes_bits[] U8X8_PROGMEM = {0x40,0x04,0x00,0x60,0x0c,0x00,0x60,0x0c,0x00,0xe0,0x0e,0x00,0xc0,0x06,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x02,0x00,0x80,0x03,0x00};
 static const unsigned char IconoBanar_bits[] U8X8_PROGMEM = {0x00,0x04,0x00,0x80,0x0a,0x00,0x40,0x05,0x00,0x80,0x08,0x00,0x00,0x14,0x00,0x20,0x09,0x00,0xd0,0x02,0x00,0xff,0xff,0x01,0xff,0xff,0x01,0xfe,0xff,0x00,0xfe,0xff,0x00,0xfe,0xff,0x00,0xfc,0x7f,0x00,0xf8,0x3f,0x00,0xf0,0x1f,0x00,0x18,0x30,0x00,0x00,0x00,0x00};
@@ -59,6 +60,52 @@ void dibujarIconos(U8G2 &u8g2, int seleccion) {
     u8g2.drawTriangle(   x, y, x + ancho, y, x + ancho/2, y + alto );
 
 }
+void dibujoAjustesUI(U8G2 &u8g2, int seleccionAjustes, int adjHora, int adjMin, int adjSeg) {
+    u8g2.setFont(u8g2_font_4x6_tf);
+    
+    // Titulo Texto / Velocidad
+    u8g2.drawStr(5, 10, "VELOCIDAD ANIMACION");
+    
+    // Botones Velocidad
+    if (seleccionAjustes == 0) u8g2.drawFrame(4, 15, 30, 10);
+    u8g2.drawStr(8, 22, "Lento");
+    
+    if (seleccionAjustes == 1) u8g2.drawFrame(39, 15, 30, 10);
+    u8g2.drawStr(43, 22, "Medio");
+    
+    if (seleccionAjustes == 2) u8g2.drawFrame(74, 15, 30, 10);
+    u8g2.drawStr(78, 22, "Fast");
+
+    // Seccion Reloj
+    u8g2.drawStr(5, 40, "AJUSTE RELOJ");
+    
+    char buf[10];
+    // Boton Hora
+    if (seleccionAjustes == 3) u8g2.drawBox(4, 45, 25, 10);
+    u8g2.setDrawColor(seleccionAjustes == 3 ? 0 : 1);
+    sprintf(buf, "%02dh", adjHora);
+    u8g2.drawStr(8, 52, buf);
+    u8g2.setDrawColor(1);
+
+    // Boton Minuto
+    if (seleccionAjustes == 4) u8g2.drawBox(34, 45, 25, 10);
+    u8g2.setDrawColor(seleccionAjustes == 4 ? 0 : 1);
+    sprintf(buf, "%02dm", adjMin);
+    u8g2.drawStr(38, 52, buf);
+    u8g2.setDrawColor(1);
+
+    // Boton Segundo
+    if (seleccionAjustes == 5) u8g2.drawBox(64, 45, 25, 10);
+    u8g2.setDrawColor(seleccionAjustes == 5 ? 0 : 1);
+    sprintf(buf, "%02ds", adjSeg);
+    u8g2.drawStr(68, 52, buf);
+    u8g2.setDrawColor(1);
+
+    // Boton Aceptar
+    if (seleccionAjustes == 6) u8g2.drawFrame(95, 52, 32, 11);
+    u8g2.drawStr(98, 60, "ACEPTAR");
+}
+
 void dibujoIDE(U8G2 &u8g2)
 {
       static float tiempo = 0;
@@ -500,23 +547,33 @@ void dibujarMuerte(U8G2 &u8g2){
     float tearXOffset = tearFactor * 2;
     u8g2.drawXBMP(79 - tearXOffset, 34 + offsetY, 11, 5, image_llantoD_bits);
     u8g2.drawXBMP(45 + tearXOffset, 34 + offsetY, 11, 5, image_llantoI_bits);
-  }
- 
- //Frases
-  void frasesAliaci(U8G2 &u8g2){
-  const char*frases[]={
+  
 
-  "¡Dios Mío! ¡Dios Mío! ¡Voy a llegar tarde!",
-  "¿y de qué sirve un libro sin dibujos ni diálogos?",
-  "¡Válganme mis orejas y bigotes, qué tarde se me está haciendo!",
-  "¡Cómo me gustaría poderme encoger como un telescopio!",
-  "¡Eres capaz de acabar con la paciencia de una ostra!",
-  "¡La Duquesa! ¡La Duquesa! ¡Me hará ejecutar tan seguro como que los grillos son grillos!",
-  "¡Oh! Siempre llegarás a alguna parte si caminas lo suficiente.",
-  "Sería lo mismo decir veo lo que como que como lo que veo.",
-  "Sui conocieras al Tiempo tan bien como yo no hablarías de matarlo.",
-  "Siempre es la hora del té",
-  "¡Chitón¡ ¡Chitón¡"
-  };
+}
+//Frases
+const char* obtenerFrase(int indice) {
+    static const char* frases[] = {
+        "¡Dios Mio! ¡Voy a llegar tarde!",
+        "¿De que sirve un libro sin dibujos?",
+        "¡Valganme mis orejas y bigotes!",
+        "¡Me gustaria encogerme!",
+        "¡Acabas con la paciencia de una ostra!",
+        "¡La Duquesa! ¡Me hara ejecutar!",
+        "Llegaras si caminas lo suficiente.",
+        "Veo lo que como o como lo que veo.",
+        "No hables de matar al Tiempo.",
+        "Siempre es la hora del te",
+        "¡Chiton! ¡Chiton!"
+    };
+
+    if (indice < 0 || indice > 10) indice = 0;
+
+    return frases[indice];
+}
+   
+
+void frasesAliacia(U8G2 &u8g2, int indiceFraseAleatoria, int xPos) {
+    u8g2.setFont(u8g2_font_5x7_tr);
+    u8g2.drawStr(xPos, 63, obtenerFrase(indiceFraseAleatoria));
 }
 #endif
