@@ -3,7 +3,7 @@
 
 #include <U8g2lib.h>
 
-int velocidadTexto =2;
+
 extern unsigned long inicioTe;
 //Arrays con la imformacion de las imegenes de los iconos
 static const unsigned char IconoAjustes_bits[] U8X8_PROGMEM = {0x40,0x04,0x00,0x60,0x0c,0x00,0x60,0x0c,0x00,0xe0,0x0e,0x00,0xc0,0x06,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x03,0x00,0x80,0x02,0x00,0x80,0x03,0x00};
@@ -35,7 +35,11 @@ static const unsigned char tazaTe_bits[] U8X8_PROGMEM = {0x02,0x00,0x00,0xfd,0xf
 
 // Metodo parda poner la pisicion y dibujar las imagenenes en pantalla
 void dibujarIconos(U8G2 &u8g2, int seleccion) {
-
+    //Hora
+    char buf[9]; 
+    sprintf(buf, "%02d:%02d:%02d", hour(), minute(), second());
+    u8g2.setFont(u8g2_font_timR18_tr);
+    u8g2.drawStr(18, 30, buf);
     // IconoComida_v03
     u8g2.drawXBMP(37, 46, 17, 17, IconoComida_bits);
 
@@ -60,51 +64,7 @@ void dibujarIconos(U8G2 &u8g2, int seleccion) {
     u8g2.drawTriangle(   x, y, x + ancho, y, x + ancho/2, y + alto );
 
 }
-void dibujoAjustesUI(U8G2 &u8g2, int seleccionAjustes, int adjHora, int adjMin, int adjSeg) {
-    u8g2.setFont(u8g2_font_4x6_tf);
-    
-    // Titulo Texto / Velocidad
-    u8g2.drawStr(5, 10, "VELOCIDAD ANIMACION");
-    
-    // Botones Velocidad
-    if (seleccionAjustes == 0) u8g2.drawFrame(4, 15, 30, 10);
-    u8g2.drawStr(8, 22, "Lento");
-    
-    if (seleccionAjustes == 1) u8g2.drawFrame(39, 15, 30, 10);
-    u8g2.drawStr(43, 22, "Medio");
-    
-    if (seleccionAjustes == 2) u8g2.drawFrame(74, 15, 30, 10);
-    u8g2.drawStr(78, 22, "Fast");
 
-    // Seccion Reloj
-    u8g2.drawStr(5, 40, "AJUSTE RELOJ");
-    
-    char buf[10];
-    // Boton Hora
-    if (seleccionAjustes == 3) u8g2.drawBox(4, 45, 25, 10);
-    u8g2.setDrawColor(seleccionAjustes == 3 ? 0 : 1);
-    sprintf(buf, "%02dh", adjHora);
-    u8g2.drawStr(8, 52, buf);
-    u8g2.setDrawColor(1);
-
-    // Boton Minuto
-    if (seleccionAjustes == 4) u8g2.drawBox(34, 45, 25, 10);
-    u8g2.setDrawColor(seleccionAjustes == 4 ? 0 : 1);
-    sprintf(buf, "%02dm", adjMin);
-    u8g2.drawStr(38, 52, buf);
-    u8g2.setDrawColor(1);
-
-    // Boton Segundo
-    if (seleccionAjustes == 5) u8g2.drawBox(64, 45, 25, 10);
-    u8g2.setDrawColor(seleccionAjustes == 5 ? 0 : 1);
-    sprintf(buf, "%02ds", adjSeg);
-    u8g2.drawStr(68, 52, buf);
-    u8g2.setDrawColor(1);
-
-    // Boton Aceptar
-    if (seleccionAjustes == 6) u8g2.drawFrame(95, 52, 32, 11);
-    u8g2.drawStr(98, 60, "ACEPTAR");
-}
 
 void dibujoIDE(U8G2 &u8g2)
 {
